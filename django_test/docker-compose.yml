@@ -1,0 +1,37 @@
+version: '3'
+services:
+  service_db:
+    restart: always
+    image: postgres:13
+    expose:
+      - "5432"
+    env_file:
+      - .env
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data/
+
+  service:
+    build: app
+    expose:
+      - "8000"
+    env_file:
+      - .env
+    volumes:
+      - static_data:/opt/app/static
+    depends_on:
+      - service_db
+
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./configs:/etc/nginx/conf.d:ro
+      - static_data:/data/static:ro
+    depends_on:
+      - service
+    ports:
+      - "80:80"
+
+volumes:
+  postgresql_data:
+  static_data:
